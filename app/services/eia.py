@@ -5,6 +5,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.models.db import RetailGasPrice
+from datetime import date, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +72,9 @@ def transform_eia_df(df:pd.DataFrame, series_name: str, series_id: str) -> list[
     df = df.copy()
     df = df.rename(columns={"period": "price_date", "value": "price_usd"})
     df["price_date"] = df["price_date"].dt.date
-    df["series_id"] = series_id
+    df["series_id"] = series_name
     df["region"] = REGION_LABELS.get(series_name, "Unknown")
-    df["id"]= df.apply(lambda r: f"{series_id}_{r['price_date']}", axis=1)
+    df["id"]= df.apply(lambda r: f"{series_name}_{r['price_date']}", axis=1)
     return df[["id", "series_id", "price_date", "price_usd", "region"]].to_dict(orient="records")
 
 # fetches a list of dicts
@@ -96,7 +97,7 @@ if __name__ == "__main__":
     import asyncio
 
     async def main():
-          rows = await fetch_all_series()
+          rows = await fetch_all_series(start=date.today() - timedelta(days=365))
           for row in rows[:5]:
               print(row)
 
