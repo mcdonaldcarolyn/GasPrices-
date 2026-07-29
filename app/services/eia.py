@@ -76,7 +76,7 @@ def transform_eia_df(df:pd.DataFrame, series_name: str, series_id: str) -> list[
     df["id"]= df.apply(lambda r: f"{series_id}_{r['price_date']}", axis=1)
     return df[["id", "series_id", "price_date", "price_usd", "region"]].to_dict(orient="records")
 
-
+# fetches a list of dicts
 async def fetch_all_series(
     start: date | None = None,
     end: date | None = None,
