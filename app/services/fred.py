@@ -19,7 +19,7 @@ async def fetch_fred_series(
         start: date | None = None, 
         end: date | None = None,
 ) -> pd.DataFrame:
-    if not setting.fred_api_key: 
+    if not settings.fred_api_key: 
         raise ValueError("FRED_API_Key not set in .env")
     params = {
         "series_id": series_id, 
@@ -44,18 +44,18 @@ async def fetch_fred_series(
     
     df = pd.DataFrame(rows)
     df["date"] = pd.to_datetime(df["date"])
-    df["value"] = pd.to_numeric(df["value"], errors="coerse")
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
 
-    return df[["date", "values"]].dropna()
+    return df[["date", "value"]].dropna()
 
 def transform_fred_df(df: pd.DataFrame, series_name: str, series_id: str) -> list[dict]:
     df = df.copy()
-    df = df.rename(columns={"date": "proce_date", "value": "price_usd"})
+    df = df.rename(columns={"date": "price_date", "value": "price_usd"})
     df["price_date"] = df["price_date"].dt.date
-    df["series_id"] = series_id
+    df["series_id"] = series_name
     df["series_name"] = SERIES_LABELS.get(series_name, "Unknown")
-    df["id"] = df.apply(lambda r: f"{series_id}_{r["price_date"]}", axis=1)
-    return df[["id", "series_id", "series_name", "price_data", "price_usd"]].to_dict(orient="records")
+    df["id"] = df.apply(lambda r: f"{series_name}_{r['price_date']}", axis=1)
+    return df[["id", "series_id", "series_name", "price_date", "price_usd"]].to_dict(orient="records")
 
 async def fetch_all_fred_series(
     start: date | None = None, 
@@ -69,15 +69,16 @@ async def fetch_all_fred_series(
             continue
         rows = transform_fred_df(df, series_name, series_id)
         logger.info("fetched %d rows for %s", len(rows), series_name)
-        all_rows.entend(rows)
+        all_rows.extend(rows)
+        return all_rows
 
 if __name__ == "__main__":
     import asyncio
 
     async def main():
         print("starting FRED fetch..")
-        rows = await fetch_all_fred_series()
-        print("total rows return: {len(rows)}")
-        for row in rows[:5]:
+        rows = await fetch_all_fred_series(end=date.today())
+        print(f"total rows return: {len(rows)}")
+        for row in rows[-5:]:
             print(row)
-    asyncio,run(main())
+    asyncio.run(main())
