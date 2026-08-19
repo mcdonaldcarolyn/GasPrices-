@@ -28,6 +28,7 @@ class Settings(BaseSettings):
         "wti_crude":   "DCOILWTICO",
         "cpi_energy":  "CPIENGSL",
         "usd_index":   "DTWEXBGS",
+        "gas_weekly": "GASREGCOVW",
     }
 
 settings = Settings()
