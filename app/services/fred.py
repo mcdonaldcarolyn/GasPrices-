@@ -70,7 +70,7 @@ async def fetch_all_fred_series(
         rows = transform_fred_df(df, series_name, series_id)
         logger.info("fetched %d rows for %s", len(rows), series_name)
         all_rows.extend(rows)
-        return all_rows
+    return all_rows
 
 if __name__ == "__main__":
     import asyncio
